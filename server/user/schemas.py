@@ -1,4 +1,3 @@
-
 from fastapi_users import schemas
 
 
@@ -7,7 +6,7 @@ class UserRead(schemas.BaseUser[int]):
     pass
 
 
-class UserCreate(schemas.BaseUserCreate):
+class UserAdd(schemas.BaseUserCreate):
     name: str
     pass
 
@@ -44,10 +43,4 @@ class UserUpdate(schemas.BaseUserUpdate):
 # #     pass
 #
 #
-# class SRoleAdd(BaseModel):
-#     name: str
-#     description: Optional[str]
-#
-#
-# class SRoleRead(SRoleAdd):
-#     id: int
+
