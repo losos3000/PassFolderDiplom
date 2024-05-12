@@ -1,13 +1,17 @@
+from typing import Optional
+
 from fastapi_users import schemas
 
 
 class UserRead(schemas.BaseUser[int]):
     name: str
+    role_id: int
     pass
 
 
 class UserAdd(schemas.BaseUserCreate):
     name: str
+    role_id: Optional[int]
     pass
 
 

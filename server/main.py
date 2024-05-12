@@ -9,10 +9,10 @@ from server.data.router import router as data_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await delete_tables()
-    print("INFO: [db]: База очищена")
-    await create_tables()
-    print("INFO: [db]: База готова")
+    # await delete_tables()
+    # print("INFO: [db]: База очищена")
+    # await create_tables()
+    # print("INFO: [db]: База готова")
     yield
     print("INFO: Выключение")
 

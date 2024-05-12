@@ -9,10 +9,19 @@ class SDataAdd(BaseModel):
     password: Optional[str]
     url: Optional[str]
     description: Optional[str]
-    user_access: Optional[str]
-    role_access: Optional[str]
+    # ds_user_id: Optional[int]
 
 
 class SDataRead(SDataAdd):
     id: int
 
+
+class SDataUserAccessAdd(BaseModel):
+    ds_data_id: int
+    ds_user_id: int
+    access_read: Optional[bool]
+    access_edit: Optional[bool]
+
+
+class SDataUserAccessRead(SDataUserAccessAdd):
+    pass

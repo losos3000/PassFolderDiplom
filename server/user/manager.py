@@ -8,13 +8,13 @@ from fastapi_users.authentication.strategy import AccessTokenDatabase, DatabaseS
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from fastapi_users_db_sqlalchemy.access_token import SQLAlchemyBaseAccessTokenTable, SQLAlchemyAccessTokenDatabase
 
-from sqlalchemy import ForeignKey, Integer
+from sqlalchemy import ForeignKey, Integer, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import declared_attr, Mapped, mapped_column
 
 from server.configuration.basemodel import Base
 from server.configuration.config import settings
-from server.configuration.database import get_async_session
+from server.configuration.database import get_async_session, session_factory
 from server.user.models import UserOrm
 
 
@@ -38,6 +38,14 @@ class UserManager(IntegerIDMixin, BaseUserManager[UserOrm, int]):
     # ):
     #     print(f"Verification requested for user {user.id}. Verification token: {token}")
 
+    @classmethod
+    async def read_user_all(cls):
+        async with session_factory() as session:
+            query = select(UserOrm)
+            result = await session.execute(query)
+            user_model = result.scalars().all()
+            return user_model
+
 
 class AccessToken(SQLAlchemyBaseAccessTokenTable[int], Base):
     @declared_attr
@@ -45,9 +53,7 @@ class AccessToken(SQLAlchemyBaseAccessTokenTable[int], Base):
         return mapped_column(Integer, ForeignKey("user.id", ondelete="cascade"), nullable=False)
 
 
-async def get_access_token_db(
-        session: AsyncSession = Depends(get_async_session),
-):
+async def get_access_token_db(session: AsyncSession = Depends(get_async_session)):
     yield SQLAlchemyAccessTokenDatabase(session, AccessToken)
 
 
@@ -80,4 +86,4 @@ fastapi_users = FastAPIUsers[UserOrm, int](
 )
 
 
-# current_active_user = fastapi_users.current_user(active=True)
+current_user = fastapi_users.current_user()

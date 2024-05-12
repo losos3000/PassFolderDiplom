@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     DB_PASS: str
     DB_NAME: str
     AUTH_SECRET: str
+    # CIPH_KEY: bytearray
 
     @property
     def DB_URL(self):
