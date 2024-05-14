@@ -12,9 +12,12 @@ class SDataAdd(BaseModel):
     # ds_user_id: Optional[int]
 
 
-class SDataRead(SDataAdd):
+class SDataRead(BaseModel):
+    url: Optional[str]
+    login: Optional[str]
+    description: Optional[str]
     id: int
-
+    password: Optional[str]
 
 class SDataUserAccessAdd(BaseModel):
     ds_data_id: int

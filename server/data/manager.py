@@ -1,13 +1,18 @@
+from typing import List
+
 from fastapi import Depends
+from pydantic import TypeAdapter
 
 from server.user.manager import fastapi_users
 from sqlalchemy import select
 
 from server.configuration.database import session_factory
 from server.data.models import DataOrm, DataUserAccessOrm
-from server.data.schemas import SDataAdd, SDataUserAccessAdd
+from server.data.schemas import SDataAdd, SDataUserAccessAdd, SDataRead
 
 current_user = fastapi_users.current_user()
+
+data_ta = TypeAdapter(List[SDataRead])
 
 
 class DataUserAccessManager:
@@ -72,12 +77,5 @@ class DataManager:
             )
             result = await session.execute(query)
             ds_data_model = result.scalars().all()
-            return ds_data_model
-
-    @classmethod
-    async def read_accessed_data(cls):
-        async with session_factory() as session:
-            query = select(DataOrm)
-            result = await session.execute(query)
-            ds_data_model = result.scalars().all()
-            return ds_data_model
+            ds_data_schema = [SDataRead.model_validate(ddm, from_attributes=True) for ddm in ds_data_model]
+            return ds_data_schema

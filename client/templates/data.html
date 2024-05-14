@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block head %}
+    <title>Мои Пароли</title>
+{% endblock %}
+
+{% block content %}
+<div class="container py-10">
+    <div class="row row-cols-3 gx-5">
+
+        <div class="list-group col">
+            <button type="button" class="list-group-item list-group-item-action active text-center" aria-current="true" >
+                Добавить
+            </button>
+        {% for record in data_records %}
+            <button type="button" class="list-group-item list-group-item-action" aria-current="true" >
+                {{record.url}}
+            </button>
+        {% endfor %}
+        </div>
+
+
+
+
+        <div class="list-group col-8">
+            <div class="list-group-item">
+                <button type="button" class="btn btn-primary text-center">Изменить</button>
+                <button type="button" class="btn btn-danger text-center">Удалить</button>
+            </div>
+
+            <div class="list-group-item">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="inputGroup-name">Название</span>
+                    <input type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" placeholder="Название записи">
+                <button class="btn btn-outline-secondary" type="button" id="button-copy-name">[]]</button>
+                </div>
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="inputGroup-url">Ссылка</span>
+                    <input type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" placeholder="Ссылка на ресурс">
+                    <button class="btn btn-outline-secondary" type="button" id="button-open-link">(#)</button>
+                    <button class="btn btn-outline-secondary" type="button" id="button-copy-link">[]]</button>
+                </div>
+
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="inputGroup-login">Логин</span>
+                    <input type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" placeholder="Логин">
+                    <button class="btn btn-outline-secondary" type="button" id="button-copy-login">[]]</button>
+                </div>
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="inputGroup-password">Пароль</span>
+                    <input type="text" class="form-control" placeholder="Пароль" aria-label="Recipient's username" aria-describedby="button-addon2">
+                    <button class="btn btn-outline-secondary" type="button" id="button-hidepassword">@<@</button>
+                    <button class="btn btn-outline-secondary" type="button" id="button-copy-password">[]]</button>
+                </div>
+
+                <div class="input-group">
+                    <span class="input-group-text">Описание</span>
+                    <textarea class="form-control" aria-label="With textarea" placeholder="Дополнительная информация"></textarea>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

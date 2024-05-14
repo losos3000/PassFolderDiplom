@@ -1,14 +1,16 @@
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends
+from pydantic import TypeAdapter
 
-from server.data.schemas import SDataAdd, SDataUserAccessAdd
+from server.data.schemas import SDataAdd, SDataUserAccessAdd, SDataRead
 from server.data.manager import DataManager, DataUserAccessManager, current_user
 from server.user.models import UserOrm
 
 from cipher.cipher import cipher_manager
 
 router = APIRouter()
+
 
 
 @router.post("/add")
@@ -28,14 +30,13 @@ async def add_data(data: SDataAdd, user: UserOrm = Depends(current_user)):
     }
 
 
-@router.get("/all")
+@router.get("/all", response_model=List[SDataRead])
 async def read_data_all(user: UserOrm = Depends(current_user)):
-    data_records: SDataAdd = await DataManager.read_data_all(user.id)
-    print(data_records)
+    data_records: SDataRead = await DataManager.read_data_all(user.id)
     return {
         "status": "Success",
         "data": data_records,
-        "message": "All data records",
+        "message": "All data accesses",
         "details": None,
     }
 
@@ -52,7 +53,7 @@ async def add_user_access(access: SDataUserAccessAdd):
 
 
 @router.get("/access/all")
-async def read_data_all():
+async def read_user_access_all():
     accesses = await DataUserAccessManager.read_access_all()
     return {
         "status": "Success",

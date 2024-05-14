@@ -6,6 +6,8 @@ from server.user.router import router as user_router
 from server.role.router import router as role_router
 from server.data.router import router as data_router
 
+from client.pages.router import router as pages_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -24,23 +26,23 @@ app = FastAPI(
 
 app.include_router(
     user_router,
-    prefix="/user",
+    prefix="/api/user",
     tags=["User"],
 )
 
 app.include_router(
     role_router,
-    prefix="/role",
+    prefix="/api/role",
     tags=["Role"],
 )
 
 app.include_router(
     data_router,
-    prefix="/data",
+    prefix="/api/data",
     tags=["Data"],
 )
 
-
-@app.get("/")
-def hello():
-    return {"message": "Hello World!"}
+app.include_router(
+    pages_router,
+    tags=["Pages"],
+)
