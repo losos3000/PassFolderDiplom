@@ -1,64 +1,212 @@
-from typing import List
+from typing import List, Type, Tuple
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi_users import schemas, exceptions, models
+from fastapi_users.authentication import Strategy, Authenticator
+from fastapi_users.manager import BaseUserManager
+from fastapi_users.openapi import OpenAPIResponseType
+from fastapi_users.router.common import ErrorCode
 
 from server.configuration.basemodel import DefaultResponse
-from server.role.schemas import SRoleRead
-from server.user.manager import auth_backend, fastapi_users, UserManager, current_user, UserRoleManager
+from server.user.manager import (
+    auth_backend, fastapi_users, UserManager, get_user_manager,
+    current_user, current_superuser, current_user_token)
+
 from server.user.models import UserOrm
-from server.user.schemas import SUserRead, SUserAdd, SUserRead, SRoleToUserRead, SRoleToUserAdd
+from server.user.schemas import SUserRead, SUserAdd, SUserRead, SUserDelete, SUserEdit, SUserAuth
 
 router = APIRouter()
+
 
 router.include_router(
     fastapi_users.get_auth_router(auth_backend),
 )
 
-router.include_router(
-    fastapi_users.get_register_router(SUserRead, SUserAdd),
-)
-
-
-###USERS
-@router.get("/me", response_model=SUserRead)
-def read_user_me(user: UserOrm = Depends(current_user)):
-    return user
-
-
-@router.get("/all", response_model=List[SUserRead])
-async def read_user_all():
-    users = await UserManager.read_user_all()
-    return users
-
-
-###ROLES TO USERS
-@router.post("/role/add", response_model=DefaultResponse)
-async def add_user_role(role: SRoleToUserAdd):
-
-    result = DefaultResponse(
+@router.post("/add", response_model=DefaultResponse, status_code=status.HTTP_201_CREATED)
+async def register(
+        request: Request,
+        new_user: SUserAdd,
+        # user_manager: BaseUserManager[models.UP, models.ID] = Depends(get_user_manager),
+        user: UserOrm = Depends(current_superuser),
+):
+    response = DefaultResponse(
         status="Success",
+        status_code=status.HTTP_201_CREATED,
         data=None,
-        message="Role added",
-        details=None,
+        message="OK",
+        details="Пользователь успешно создан",
     )
 
     try:
-        await UserRoleManager.add_user_role(role)
-        return result
+        await UserManager.add_user(user_create=new_user, safe=True, request=request)
+    except exceptions.UserAlreadyExists:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorCode.REGISTER_USER_ALREADY_EXISTS,
+        )
+    except exceptions.InvalidPasswordException as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "code": ErrorCode.REGISTER_INVALID_PASSWORD,
+                "reason": e.reason,
+            },
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="INTERNAL SERVER ERROR"
+        )
+    return response
 
-    except Exception:
-        result.status = "500 Error"
-        result.message = "Internal server error"
-        return result
+
+@router.post("/login")
+async def login(
+    request: Request,
+    data: SUserAuth,
+    user_manager: BaseUserManager[models.UP, models.ID] = Depends(get_user_manager),
+    strategy: Strategy[models.UP, models.ID] = Depends(auth_backend.get_strategy),
+):
+    response = DefaultResponse(
+        status="Success",
+        status_code=status.HTTP_200_OK,
+        data=None,
+        message="OK",
+        details="Аутентификация прошла успешна",
+    )
+
+    # try:
+    user = await UserManager.authenticate(data)
+    print(user)
+    if user is None: # or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorCode.LOGIN_BAD_CREDENTIALS,
+        )
+    res = await auth_backend.login(strategy, user)
+    await user_manager.on_after_login(user, request, res)
+
+    # except HTTPException as e:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         detail=ErrorCode.LOGIN_BAD_CREDENTIALS,
+    #     )
+    # except Exception as e:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         detail="INTERNAL SERVER ERROR"
+    #     )
+    return response
 
 
-@router.get("/role/me", response_model=List[SRoleRead])
-async def read_user_role_me(user: UserOrm = Depends(current_user)):
-    roles = await UserManager.read_user_role_me(user.id)
-    return roles
+@router.post("/logout")
+async def logout(
+    user_token: Tuple[models.UP, str] = Depends(current_user_token),
+    strategy: Strategy[models.UP, models.ID] = Depends(auth_backend.get_strategy),
+):
+    user, token = user_token
+    return await auth_backend.logout(strategy, user, token)
 
 
-@router.get("/role/all", response_model=List[SRoleToUserRead])
-async def read_user_role_all():
-    roles = await UserManager.read_user_role_all()
-    return roles
+@router.put("/edit", response_model=DefaultResponse,status_code=status.HTTP_200_OK)
+async def edit_user(
+        data: SUserEdit,
+        user_manager: BaseUserManager[models.UP, models.ID] = Depends(get_user_manager),
+        user: UserOrm = Depends(current_superuser),
+):
+    response = DefaultResponse(
+        status="Success",
+        status_code=status.HTTP_200_OK,
+        data=None,
+        message="OK",
+        details="Пользователь успешно изменен",
+    )
+
+    try:
+        await UserManager.edit_user()
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="INTERNAL SERVER ERROR"
+        )
+    return response
+
+@router.delete("/delete", response_model=DefaultResponse, status_code=status.HTTP_200_OK)
+async def delete_user(data: SUserDelete, user: UserOrm = Depends(current_superuser)):
+    response = DefaultResponse(
+        status="Success",
+        status_code=status.HTTP_200_OK,
+        data=None,
+        message="OK",
+        details="Пользователь успешно удален",
+    )
+
+    try:
+        await UserManager.delete_user(data)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="INTERNAL SERVER ERROR"
+        )
+    return response
+
+
+@router.get("/all", response_model=List[SUserRead], status_code=status.HTTP_200_OK)
+async def read_user_all(user: UserOrm = Depends(current_user)):
+    response = DefaultResponse(
+        status="Success",
+        status_code=status.HTTP_200_OK,
+        data=None,
+        message="OK",
+        details="Даные всех пользователей",
+    )
+
+    try:
+        response.data = await UserManager.read_user_all()
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="INTERNAL SERVER ERROR"
+        )
+    return response
+
+
+@router.get("/me", response_model=DefaultResponse, status_code=status.HTTP_200_OK)
+async def read_user_me(user: UserOrm = Depends(current_user)):
+    response = DefaultResponse(
+        status="Success",
+        status_code=status.HTTP_200_OK,
+        data=None,
+        message="OK",
+        details="Даные аутентифицированного пользователя",
+    )
+
+    try:
+        response.data = await UserManager.read_user(user.id)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="INTERNAL SERVER ERROR"
+        )
+    return response
+
+
+@router.get("/{user_id}", response_model=List[SUserRead], status_code=status.HTTP_200_OK)
+async def read_user(user_id: int, user: UserOrm = Depends(current_user)):
+    response = DefaultResponse(
+        status="Success",
+        status_code=status.HTTP_200_OK,
+        data=None,
+        message="OK",
+        details="Даные выбранного пользователя",
+    )
+
+    try:
+        response.data = await UserManager.read_user(user_id)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="INTERNAL SERVER ERROR"
+        )
+    return response
+

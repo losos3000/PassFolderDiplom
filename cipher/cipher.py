@@ -1,7 +1,6 @@
-from gostcrypto import gostcipher, gosthash
-from pydantic import BaseModel
+import typing
 
-from server.configuration.config import settings
+from gostcrypto import gostcipher, gosthash
 
 key = bytearray([
     0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
@@ -12,7 +11,7 @@ key = bytearray([
 class Cipher:
 
     def __init__(self, seed: list[str]) -> None:
-        # self.id = gosthash.new(
+        # self.__hashing = gosthash.new(
         #     'streebog256',
         #     data=('.'.join(seed)).encode()).hexdigest()
 
@@ -31,6 +30,13 @@ class Cipher:
     def decrypt(self, value: str) -> str:
         return self.__cipher_obj.decrypt(bytearray.fromhex(value)).decode('utf-16').rstrip('\x00')
 
+    def hash(self, value: str) -> str:
+        return gosthash.new('streebog256', data=('.'.join(value)).encode()).hexdigest()
+
+    def verify_pass(self, password, hashed_password) -> bool:
+        if hashed_password == password:
+            return True
+        return False
+
 
 cipher_manager = Cipher(key)
-

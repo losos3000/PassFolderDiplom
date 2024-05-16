@@ -1,77 +1,19 @@
 from typing import List
 
-from fastapi import Depends
 from pydantic import TypeAdapter
 from sqlalchemy import select
 
 from server.configuration.database import session_factory
-from server.user.manager import fastapi_users
-from server.data.models import DataOrm, DataUserAccessOrm, DataRoleAccessOrm
-from server.data.schemas import SDataAdd, SDataRead, SDataUserAccessAdd, SDataRoleAccessAdd, SDataRoleAccessRead
 
-current_user = fastapi_users.current_user()
+from server.data.acccess.manager import user_access_manager
+from server.data.acccess.models import DataUserAccessOrm
+from server.data.acccess.schemas import SDataUserAccessAdd
+
+from server.data.models import DataOrm
+from server.data.schemas import SDataAdd, SDataRead
+
 
 data_ta = TypeAdapter(List[SDataRead])
-
-
-###USER ACCESS MANAGER
-class DataUserAccessManager:
-    @classmethod
-    async def add_access_with_session(cls, data: SDataUserAccessAdd, session):
-        access_dict = data.model_dump()
-        access = DataUserAccessOrm(**access_dict)
-        session.add(access)
-        await session.flush()
-
-    @classmethod
-    async def add_access(cls, data: SDataUserAccessAdd):
-        async with session_factory() as session:
-            access_dict = data.model_dump()
-            access = DataUserAccessOrm(**access_dict)
-            session.add(access)
-            await session.flush()
-            await session.commit()
-
-    @classmethod
-    async def read_access_all(cls):
-        async with session_factory() as session:
-            query = select(DataUserAccessOrm)
-            result = await session.execute(query)
-            access_model = result.scalars().all()
-            access_schema = [SDataRoleAccessRead.model_validate(ras, from_attributes=True) for ras in access_model]
-            return access_schema
-
-
-###ROLE ACCESS MANAGER
-class DataRoleAccessManager:
-    @classmethod
-    async def add_access_with_session(cls, data: SDataRoleAccessAdd, session):
-        access_dict = data.model_dump()
-        access = DataRoleAccessOrm(**access_dict)
-        session.add(access)
-        await session.flush()
-
-    @classmethod
-    async def add_access(cls, data: SDataRoleAccessAdd):
-        async with session_factory() as session:
-            access_dict = data.model_dump()
-            access = DataRoleAccessOrm(**access_dict)
-            session.add(access)
-            await session.flush()
-            await session.commit()
-
-    @classmethod
-    async def read_access_all(cls):
-        async with session_factory() as session:
-            query = select(DataRoleAccessOrm)
-            result = await session.execute(query)
-            access_model = result.scalars().all()
-            return access_model
-
-
-###DATA ACCESS MANAGER
-user_access_manager = DataUserAccessManager()
-role_access_manager = DataRoleAccessManager()
 
 
 class DataManager:
@@ -94,7 +36,7 @@ class DataManager:
             await session.commit()
 
     @classmethod
-    async def read_data_my(cls, user_id: int):
+    async def read_data_accessed(cls, user_id: int):
         async with session_factory() as session:
             query = (
                 select(DataOrm)
@@ -109,3 +51,24 @@ class DataManager:
             ds_data_model = result.scalars().all()
             ds_data_schema = [SDataRead.model_validate(ddm, from_attributes=True) for ddm in ds_data_model]
             return ds_data_schema
+
+    @classmethod
+    async def read_data_all(cls):
+        async with session_factory() as session:
+            query = select(DataOrm)
+            result = await session.execute(query)
+            ds_data_model = result.scalars().all()
+            ds_data_schema = [SDataRead.model_validate(ddm, from_attributes=True) for ddm in ds_data_model]
+            return ds_data_schema
+
+    @classmethod
+    async def read_data(cls, data_id: int):
+        async with session_factory() as session:
+            query = select(DataOrm).where(DataOrm.id == data_id)
+            result = await session.execute(query)
+            ds_data_model = result.scalars().all()
+            ds_data_schema = [SDataRead.model_validate(ddm, from_attributes=True) for ddm in ds_data_model]
+            return ds_data_schema
+
+
+data_manager = DataManager()

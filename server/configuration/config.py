@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     DB_PASS: str
     DB_NAME: str
     AUTH_SECRET: str
+    SUPERUSER_EMAIL: str
+    SUPERUSER_PASSWORD: str
+    SUPERUSER_NAME: str
     # CIPH_KEY: bytearray
 
     @property

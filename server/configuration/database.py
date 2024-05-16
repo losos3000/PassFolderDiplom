@@ -5,10 +5,9 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from server.configuration.config import settings
 from server.configuration.basemodel import Base
 
-
 engine = create_async_engine(
     url=settings.DB_URL,
-    echo=True,
+    # echo=True,
     # pool_size=5,
     # max_overflow=10,
 )
@@ -32,3 +31,4 @@ async def create_tables():
 async def delete_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
