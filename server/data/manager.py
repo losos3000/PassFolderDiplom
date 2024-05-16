@@ -2,19 +2,19 @@ from typing import List
 
 from fastapi import Depends
 from pydantic import TypeAdapter
-
-from server.user.manager import fastapi_users
 from sqlalchemy import select
 
 from server.configuration.database import session_factory
-from server.data.models import DataOrm, DataUserAccessOrm
-from server.data.schemas import SDataAdd, SDataUserAccessAdd, SDataRead
+from server.user.manager import fastapi_users
+from server.data.models import DataOrm, DataUserAccessOrm, DataRoleAccessOrm
+from server.data.schemas import SDataAdd, SDataRead, SDataUserAccessAdd, SDataRoleAccessAdd, SDataRoleAccessRead
 
 current_user = fastapi_users.current_user()
 
 data_ta = TypeAdapter(List[SDataRead])
 
 
+###USER ACCESS MANAGER
 class DataUserAccessManager:
     @classmethod
     async def add_access_with_session(cls, data: SDataUserAccessAdd, session):
@@ -38,10 +38,40 @@ class DataUserAccessManager:
             query = select(DataUserAccessOrm)
             result = await session.execute(query)
             access_model = result.scalars().all()
+            access_schema = [SDataRoleAccessRead.model_validate(ras, from_attributes=True) for ras in access_model]
+            return access_schema
+
+
+###ROLE ACCESS MANAGER
+class DataRoleAccessManager:
+    @classmethod
+    async def add_access_with_session(cls, data: SDataRoleAccessAdd, session):
+        access_dict = data.model_dump()
+        access = DataRoleAccessOrm(**access_dict)
+        session.add(access)
+        await session.flush()
+
+    @classmethod
+    async def add_access(cls, data: SDataRoleAccessAdd):
+        async with session_factory() as session:
+            access_dict = data.model_dump()
+            access = DataRoleAccessOrm(**access_dict)
+            session.add(access)
+            await session.flush()
+            await session.commit()
+
+    @classmethod
+    async def read_access_all(cls):
+        async with session_factory() as session:
+            query = select(DataRoleAccessOrm)
+            result = await session.execute(query)
+            access_model = result.scalars().all()
             return access_model
 
 
+###DATA ACCESS MANAGER
 user_access_manager = DataUserAccessManager()
+role_access_manager = DataRoleAccessManager()
 
 
 class DataManager:
@@ -64,7 +94,7 @@ class DataManager:
             await session.commit()
 
     @classmethod
-    async def read_data_all(cls, user_id: int):
+    async def read_data_my(cls, user_id: int):
         async with session_factory() as session:
             query = (
                 select(DataOrm)

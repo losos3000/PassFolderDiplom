@@ -15,10 +15,24 @@ from sqlalchemy.orm import declared_attr, Mapped, mapped_column
 from server.configuration.basemodel import Base
 from server.configuration.config import settings
 from server.configuration.database import get_async_session, session_factory
-from server.user.models import UserOrm
-
+from server.role.models import RoleOrm
+from server.role.schemas import SRoleRead
+from server.user.models import UserOrm, RoleToUserOrm
+from server.user.schemas import SRoleToUserRead, SUserRead, SRoleToUserAdd
 
 SECRET = settings.AUTH_SECRET
+
+
+class UserRoleManager:
+
+    @classmethod
+    async def add_user_role(cls, data: SRoleToUserAdd):
+        async with session_factory() as session:
+            role_dict = data.model_dump()
+            role = RoleToUserOrm(**role_dict)
+            session.add(role)
+            await session.flush()
+            await session.commit()
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[UserOrm, int]):
@@ -39,18 +53,53 @@ class UserManager(IntegerIDMixin, BaseUserManager[UserOrm, int]):
     #     print(f"Verification requested for user {user.id}. Verification token: {token}")
 
     @classmethod
+    async def read_user_me(cls, user_id: int):
+        async with session_factory() as session:
+            query = select(UserOrm).where(UserOrm.id == user_id)
+            result = await session.execute(query)
+            user_model = result.scalars().all()
+            return user_model
+
+    @classmethod
     async def read_user_all(cls):
         async with session_factory() as session:
             query = select(UserOrm)
             result = await session.execute(query)
             user_model = result.scalars().all()
-            return user_model
+            user_schema = [SUserRead.model_validate(um, from_attributes=True) for um in user_model]
+            return user_schema
+
+    @classmethod
+    async def read_user_role_me(cls, user_id: int):
+        async with session_factory() as session:
+            query = (
+                select(RoleOrm)
+                .join(
+                    RoleToUserOrm,
+                    RoleToUserOrm.ds_role_id == RoleOrm.id,
+                ).filter(
+                    RoleToUserOrm.ds_user_id == user_id,
+                )
+            )
+            result = await session.execute(query)
+            role_model = result.scalars().all()
+            role_schema = [SRoleRead.model_validate(rm, from_attributes=True) for rm in role_model]
+            return role_schema
+
+    @classmethod
+    async def read_user_role_all(cls):
+        async with session_factory() as session:
+            query = select(RoleToUserOrm)
+            result = await session.execute(query)
+            user_role_model = result.scalars().all()
+            user_role_schema = [SRoleToUserRead.model_validate(urm, from_attributes=True) for urm in user_role_model]
+            return user_role_schema
 
 
 class AccessToken(SQLAlchemyBaseAccessTokenTable[int], Base):
     @declared_attr
     def user_id(self) -> Mapped[int]:
-        return mapped_column(Integer, ForeignKey("user.id", ondelete="cascade"), nullable=False)
+        return mapped_column(Integer, ForeignKey("ds_user.id", ondelete="cascade"), nullable=False)
 
 
 async def get_access_token_db(session: AsyncSession = Depends(get_async_session)):
@@ -80,10 +129,10 @@ auth_backend = AuthenticationBackend(
     get_strategy=get_database_strategy,
 )
 
+
 fastapi_users = FastAPIUsers[UserOrm, int](
     get_user_manager,
-    [auth_backend],
+    [auth_backend]
 )
-
 
 current_user = fastapi_users.current_user()

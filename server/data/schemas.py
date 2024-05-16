@@ -1,24 +1,9 @@
 from typing import Optional
 
 from pydantic import BaseModel
-from sqlalchemy import JSON
 
 
-class SDataAdd(BaseModel):
-    login: Optional[str]
-    password: Optional[str]
-    url: Optional[str]
-    description: Optional[str]
-    # ds_user_id: Optional[int]
-
-
-class SDataRead(BaseModel):
-    url: Optional[str]
-    login: Optional[str]
-    description: Optional[str]
-    id: int
-    password: Optional[str]
-
+###USERS ACCESSES SCHEMAS
 class SDataUserAccessAdd(BaseModel):
     ds_data_id: int
     ds_user_id: int
@@ -28,3 +13,28 @@ class SDataUserAccessAdd(BaseModel):
 
 class SDataUserAccessRead(SDataUserAccessAdd):
     pass
+
+
+###ROLES ACCESSES SCHEMAS
+class SDataRoleAccessAdd(BaseModel):
+    ds_data_id: int
+    ds_role_id: int
+    access_read: Optional[bool]
+    access_edit: Optional[bool]
+
+
+class SDataRoleAccessRead(SDataRoleAccessAdd):
+    pass
+
+
+###DATA SCHEMAS
+class SDataAdd(BaseModel):
+    name: str
+    login: Optional[str]
+    password: Optional[str]
+    url: Optional[str]
+    description: Optional[str]
+
+
+class SDataRead(SDataAdd):
+    id: int

@@ -1,50 +1,24 @@
-from typing import Optional
-
 from fastapi_users import schemas
+from pydantic import BaseModel
 
 
-class UserRead(schemas.BaseUser[int]):
+###USER SCHEMAS
+class SUserRead(schemas.BaseUser[int]):
     name: str
-    role_id: int
-    pass
 
 
-class UserAdd(schemas.BaseUserCreate):
+class SUserAdd(schemas.BaseUserCreate):
     name: str
-    role_id: Optional[int]
+
+
+class SUserUpdate(schemas.BaseUserUpdate):
     pass
 
 
-class UserUpdate(schemas.BaseUserUpdate):
+###ROLE FOR USER SCHEMAS
+class SRoleToUserAdd(BaseModel):
+    ds_user_id: int
+    ds_role_id: int
+
+class SRoleToUserRead(SRoleToUserAdd):
     pass
-
-
-
-# from typing import Optional
-#
-# from pydantic import BaseModel
-# from fastapi_users import schemas
-#
-#
-# class SUserRead(schemas.BaseUser[int]):
-#     id: int
-#     login: str
-#     email: str
-#     is_active: bool = True
-#     is_superuser: bool = False
-#     is_verified: bool = False
-#     pass
-#
-#
-# class SUserAdd(schemas.BaseUserCreate):
-#     name: str
-#     login: str
-#     role_id: int
-#     pass
-#
-#
-# # class UserUpdate(schemas.BaseUserUpdate):
-# #     pass
-#
-#
-
