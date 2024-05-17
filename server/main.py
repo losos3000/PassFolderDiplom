@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
+from fastapi.middleware.cors import CORSMiddleware
+
 # from server.configuration.database import delete_tables, create_table
 
 from server.user.router import router as user_router
@@ -21,6 +23,21 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     lifespan=lifespan,
     title="DataSec",
+)
+
+origins = [
+    "localhost",
+    "localhost:8080",
+    "127.0.0.1:8080",
+    "127.0.0.1",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "DELETE", "PUT"],
+    allow_headers=["*"],
 )
 
 app.include_router(

@@ -4,7 +4,6 @@ from pydantic import BaseModel, EmailStr
 
 ###USER SCHEMAS
 class SUserAdd(schemas.BaseUserCreate):
-    email: str
     name: str
 
 
@@ -12,8 +11,12 @@ class SUserRead(schemas.BaseUser[int]):
     name: str
 
 
-class SUserEdit(SUserAdd):
+class SUserEdit(BaseModel):
     id: int
+    email: EmailStr | None = None
+    name: str | None = None
+    password: str | None = None
+    is_superuser: bool | None = None
 
 
 class SUserDelete(BaseModel):

@@ -5,7 +5,7 @@ from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, IntegerIDMixin, FastAPIUsers, exceptions, models
 from fastapi_users.authentication import CookieTransport, AuthenticationBackend
 from fastapi_users.authentication.strategy import AccessTokenDatabase, DatabaseStrategy
-from fastapi_users.password import PasswordHelperProtocol
+from fastapi_users.password import PasswordHelperProtocol, PasswordHelper
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from fastapi_users_db_sqlalchemy.access_token import SQLAlchemyBaseAccessTokenTable, SQLAlchemyAccessTokenDatabase
 
@@ -22,7 +22,7 @@ from server.user.models import UserOrm
 from server.user.schemas import SUserRead, SUserDelete, SUserAdd, SUserEdit, SUserAuth, SUser
 
 SECRET = settings.AUTH_SECRET
-password_helper: PasswordHelperProtocol
+password_helper: PasswordHelperProtocol = PasswordHelper()
 
 
 def user_validate_response(data) -> List[SUserRead]:
@@ -37,46 +37,27 @@ class UserManager(IntegerIDMixin, BaseUserManager[UserOrm, int]):
     verification_token_secret = SECRET
 
     @classmethod
-    async def add_user(cls, user_create: SUserAdd, safe: bool = False, request: Optional[Request] = None,):
-        async with session_factory() as session:
-            exist_user = await session.execute(select(UserOrm).where(user_create.email == UserOrm.email))
-
-            if len((user_validate_response(exist_user))) != 0:
-                raise exceptions.UserAlreadyExists()
-
-            user_dict = (
-                user_create.create_update_dict()
-                if safe
-                else user_create.create_update_dict_superuser()
-            )
-            password = user_dict.pop("password")
-            user_dict["hashed_password"] = cipher_manager.hash(password)
-            ds_user = UserOrm(**user_dict)
-
-            session.add(ds_user)
-            await session.flush()
-            await session.commit()
-
-
-    @classmethod
     async def edit_user(cls, data: SUserEdit):
         async with session_factory() as session:
             new_user_dict = data.model_dump()
+            password = new_user_dict.pop("password")
+            new_user_dict["hashed_password"] = password
             new_user = UserOrm(**new_user_dict)
 
-            if new_user.email != "":
-                email_query = update(UserOrm).values(email=new_user.email).filter(UserOrm.id==new_user.id)
-            if new_user.name != "":
+            if new_user.email is not None:
+                email_query = update(UserOrm).values(email=new_user.email).filter(UserOrm.id == new_user.id)
+                await session.execute(email_query)
+            if new_user.name is not None:
                 name_query = update(UserOrm).values(name=new_user.name).filter(UserOrm.id == new_user.id)
-            if new_user.hashed_password != "":
-                print(f"PAS1 AAAAAAAAAAAAAAAA{new_user.hashed_password}")
-                new_password = cipher_manager.hash(new_user.hashed_password)
-                print(f"PAS2 AAAAAAAAAAAAAAAA{new_password}")
+                await session.execute(name_query)
+            if new_user.hashed_password is not None:
+                new_password = password_helper.hash(new_user.hashed_password) #cipher_manager.hash(new_user.hashed_password)
                 pass_query = update(UserOrm).values(hashed_password=new_password).filter(UserOrm.id == new_user.id)
+                await session.execute(pass_query)
+            if new_user.is_superuser is not None:
+                super_query = update(UserOrm).values(is_superuser=new_user.is_superuser).filter(UserOrm.id == new_user.id)
+                await session.execute(super_query)
 
-            await session.execute(email_query)
-            await session.execute(name_query)
-            await session.execute(pass_query)
             await session.flush()
             await session.commit()
 
@@ -105,33 +86,6 @@ class UserManager(IntegerIDMixin, BaseUserManager[UserOrm, int]):
             await session.execute(query)
             await session.flush()
             await session.commit()
-
-    @classmethod
-    async def authenticate(cls, auth_data: SUserAuth) -> Optional[models.UP]:
-
-        result = await session_factory().execute(select(UserOrm).where(auth_data.email == UserOrm.email))
-
-        user_model = result.scalars().all()
-        user_schema = [SUser.model_validate(um, from_attributes=True) for um in user_model]
-
-        verified = cipher_manager.verify_pass(cipher_manager.hash(auth_data.password), user_schema[0].hashed_password)
-        if not verified:
-            return None
-
-        res = models.UserProtocol
-        res.id = user_schema[0].id
-        res.email = user_schema[0].email
-        res.hashed_password = user_schema[0].hashed_password
-        res.is_active = user_schema[0].is_active
-        res.is_verified = user_schema[0].is_verified
-        res.is_superuser = user_schema[0].is_superuser
-        return res
-
-
-
-
-
-
 
 
 ###OTHER
@@ -176,4 +130,3 @@ fastapi_users = FastAPIUsers[UserOrm, int](
 
 current_user = fastapi_users.current_user()
 current_superuser = fastapi_users.current_user(active=True, superuser=True)
-current_user_token = fastapi_users.authenticator.current_user_token(active=True)

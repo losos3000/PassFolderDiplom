@@ -14,3 +14,7 @@ class SDataAdd(BaseModel):
 
 class SDataRead(SDataAdd):
     id: int
+
+
+class SDataDelete(BaseModel):
+    id: int

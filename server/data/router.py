@@ -7,7 +7,7 @@ from server.configuration.basemodel import DefaultResponse
 from server.user.models import UserOrm
 from server.user.manager import current_user, current_superuser
 
-from server.data.schemas import SDataAdd, SDataRead
+from server.data.schemas import SDataAdd, SDataRead, SDataDelete
 from server.data.manager import data_manager
 
 
@@ -72,7 +72,7 @@ async def edit_data():
 
 
 @router.delete("/delete", response_model=DefaultResponse)
-async def delete_data():
+async def delete_data(data: SDataDelete, user: UserOrm = Depends(current_user)):
     result = DefaultResponse(
         status="Success",
         data=None,
@@ -81,7 +81,7 @@ async def delete_data():
     )
 
     try:
-        # await DataUserAccessManager.delete_data(acess)
+        await data_manager.delete_data(data.id, user)
         return result
 
     except Exception:

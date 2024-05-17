@@ -11,7 +11,7 @@ from server.data.acccess.schemas import SDataUserAccessAdd
 
 from server.data.models import DataOrm
 from server.data.schemas import SDataAdd, SDataRead
-
+from server.user.models import UserOrm
 
 data_ta = TypeAdapter(List[SDataRead])
 
@@ -69,6 +69,10 @@ class DataManager:
             ds_data_model = result.scalars().all()
             ds_data_schema = [SDataRead.model_validate(ddm, from_attributes=True) for ddm in ds_data_model]
             return ds_data_schema
+
+    @classmethod
+    async def delete_data(cls, data_id, user: UserOrm):
+        pass
 
 
 data_manager = DataManager()
