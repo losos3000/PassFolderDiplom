@@ -15,7 +15,9 @@ class Base(DeclarativeBase):
 class DefaultResponse(BaseModel):
     status: str = "None"
     status_code: int = 0
-    data: List[SUserRead] | List[SDataRead] | List[SDataUserAccessRead] | None = None
+    detail: str | None = None
     message: str | None = None
-    details: str | None = None
+    data: List[SUserRead] | List[SDataRead] | List[SDataUserAccessRead] | None = None
+
+
 

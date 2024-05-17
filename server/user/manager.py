@@ -25,8 +25,8 @@ SECRET = settings.AUTH_SECRET
 password_helper: PasswordHelperProtocol = PasswordHelper()
 
 
-def user_validate_response(data) -> List[SUserRead]:
-    result = [SUserRead.model_validate(um, from_attributes=True) for um in data]
+def response_validate(data) -> List[SUserRead]:
+    result = [SUserRead.model_validate(d, from_attributes=True) for d in data]
     return result
 
 
@@ -67,7 +67,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[UserOrm, int]):
             query = select(UserOrm).where(UserOrm.id == user_id)
             result = await session.execute(query)
             user_model = result.scalars().all()
-            user_schema = user_validate_response(user_model)
+            user_schema = response_validate(user_model)
             return user_schema
 
     @classmethod
@@ -76,7 +76,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[UserOrm, int]):
             query = select(UserOrm)
             result = await session.execute(query)
             user_model = result.scalars().all()
-            user_schema = user_validate_response(user_model)
+            user_schema = response_validate(user_model)
             return user_schema
 
     @classmethod

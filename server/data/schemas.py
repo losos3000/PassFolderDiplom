@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
+from server.data.acccess.schemas import SDataUserAccessRead
 
 
 ###DATA SCHEMAS
@@ -14,7 +15,14 @@ class SDataAdd(BaseModel):
 
 class SDataRead(SDataAdd):
     id: int
+    access: List[SDataUserAccessRead]
 
 
 class SDataDelete(BaseModel):
     id: int
+
+class SDataEdit(SDataRead):
+    pass
+
+class SDataGet(BaseModel):
+    id: int | None = None

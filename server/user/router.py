@@ -40,14 +40,13 @@ async def edit_user(
         message="OK",
         details="Пользователь успешно изменен",
     )
-
-    # try:
-    await UserManager.edit_user(data)
-    # except Exception as e:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    #         detail="INTERNAL SERVER ERROR"
-    #     )
+    try:
+        await UserManager.edit_user(data)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="INTERNAL SERVER ERROR"
+        )
     return response
 
 @router.delete("/delete", response_model=DefaultResponse, status_code=status.HTTP_200_OK)
@@ -59,7 +58,6 @@ async def delete_user(data: SUserDelete, user: UserOrm = Depends(current_superus
         message="OK",
         details="Пользователь успешно удален",
     )
-
     try:
         await UserManager.delete_user(data)
     except Exception as e:
@@ -79,7 +77,6 @@ async def read_user_all(user: UserOrm = Depends(current_user)):
         message="OK",
         details="Даные всех пользователей",
     )
-
     try:
         response.data = await UserManager.read_user_all()
     except Exception as e:
@@ -99,7 +96,6 @@ async def read_user_me(user: UserOrm = Depends(current_user)):
         message="OK",
         details="Даные аутентифицированного пользователя",
     )
-
     try:
         response.data = await UserManager.read_user(user.id)
     except Exception as e:
@@ -119,7 +115,6 @@ async def read_user(user_id: int, user: UserOrm = Depends(current_user)):
         message="OK",
         details="Даные выбранного пользователя",
     )
-
     try:
         response.data = await UserManager.read_user(user_id)
     except Exception as e:

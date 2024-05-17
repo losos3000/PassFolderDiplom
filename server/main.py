@@ -7,8 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from server.user.router import router as user_router
 from server.data.router import router as data_router
-from server.data.acccess.router import router as access_router
-from client.pages.router import router as pages_router
+# from server.data.acccess.router import router as access_router
+# from client.pages.router import router as pages_router
 
 from server.reset import reset
 
@@ -36,7 +36,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE", "PUT"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -52,13 +52,13 @@ app.include_router(
     tags=["Data"],
 )
 
-app.include_router(
-    access_router,
-    prefix="/access",
-    tags=["Access"],
-)
+# app.include_router(
+#     access_router,
+#     prefix="/access",
+#     tags=["Access"],
+# )
 
-app.include_router(
-    pages_router,
-    tags=["Page"],
-)
+# app.include_router(
+#     pages_router,
+#     tags=["Page"],
+# )

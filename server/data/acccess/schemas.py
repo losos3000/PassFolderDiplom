@@ -11,5 +11,8 @@ class SDataUserAccessAdd(BaseModel):
     access_edit: Optional[bool]
 
 
-class SDataUserAccessRead(SDataUserAccessAdd):
-    pass
+class SDataUserAccessRead(BaseModel):
+    ds_data_id: int | None
+    ds_user_id: int | None
+    access_read: bool | None
+    access_edit: bool | None
