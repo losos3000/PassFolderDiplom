@@ -1,7 +1,7 @@
 from typing import Optional, List
 
 from pydantic import BaseModel
-from server.data.acccess.schemas import SDataUserAccessRead
+from server.data.acccess.schemas import SDataUserAccessRead, SDataUserAccessEdit
 
 
 ###DATA SCHEMAS
@@ -15,14 +15,28 @@ class SDataAdd(BaseModel):
 
 class SDataRead(SDataAdd):
     id: int
+
+
+class SDataWithAccessRead(SDataRead):
     access: List[SDataUserAccessRead]
 
 
 class SDataDelete(BaseModel):
     id: int
 
-class SDataEdit(SDataRead):
-    pass
+
+class SDataEdit(BaseModel):
+    id: int
+    name: str | None
+    login: str | None
+    password: str | None
+    url: str | None
+    description: str | None
+    access: List[SDataUserAccessEdit]
+
 
 class SDataGet(BaseModel):
     id: int | None = None
+
+class SData(SDataAdd):
+    id: int

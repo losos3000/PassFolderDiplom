@@ -16,3 +16,9 @@ class SDataUserAccessRead(BaseModel):
     ds_user_id: int | None
     access_read: bool | None
     access_edit: bool | None
+
+
+class SDataUserAccessEdit(BaseModel):
+    ds_user_id: int
+    access_read: bool
+    access_edit: bool

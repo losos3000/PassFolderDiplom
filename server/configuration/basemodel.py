@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import DeclarativeBase
 
 from server.data.acccess.schemas import SDataUserAccessRead
-from server.data.schemas import SDataRead
+from server.data.schemas import SDataRead, SDataWithAccessRead
 from server.user.schemas import SUserRead
 
 
@@ -17,7 +17,7 @@ class DefaultResponse(BaseModel):
     status_code: int = 0
     detail: str | None = None
     message: str | None = None
-    data: List[SUserRead] | List[SDataRead] | List[SDataUserAccessRead] | None = None
+    data: List[SUserRead] | List[SDataRead] | List[SDataUserAccessRead] | List[SDataWithAccessRead] | None = None
 
 
 

@@ -34,8 +34,8 @@ async def register_superuser():
 
 async def reset():
     await delete_tables()
-    print("INFO:    [db]: База очищена")
+    print("INFO:     [db]: База очищена")
     await create_tables()
-    print("INFO:    [db]: База готова")
+    print("INFO:     [db]: База готова")
     await register_superuser()
-    print("INFO:    [DataSec]: Суперпользователь зарегистрирован")
+    print("INFO:     [system]: Суперпользователь зарегистрирован")

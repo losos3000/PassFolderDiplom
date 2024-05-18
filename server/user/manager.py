@@ -18,6 +18,7 @@ from cipher.cipher import cipher_manager
 from server.configuration.basemodel import Base
 from server.configuration.config import settings
 from server.configuration.database import get_async_session, session_factory
+from server.data.acccess.manager import user_access_manager
 from server.user.models import UserOrm
 from server.user.schemas import SUserRead, SUserDelete, SUserAdd, SUserEdit, SUserAuth, SUser
 
@@ -51,7 +52,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[UserOrm, int]):
                 name_query = update(UserOrm).values(name=new_user.name).filter(UserOrm.id == new_user.id)
                 await session.execute(name_query)
             if new_user.hashed_password is not None:
-                new_password = password_helper.hash(new_user.hashed_password) #cipher_manager.hash(new_user.hashed_password)
+                new_password = password_helper.hash(new_user.hashed_password)
                 pass_query = update(UserOrm).values(hashed_password=new_password).filter(UserOrm.id == new_user.id)
                 await session.execute(pass_query)
             if new_user.is_superuser is not None:
@@ -82,6 +83,11 @@ class UserManager(IntegerIDMixin, BaseUserManager[UserOrm, int]):
     @classmethod
     async def delete_user(cls, data: SUserDelete):
         async with session_factory() as session:
+            await user_access_manager.delete_access(
+                session=session,
+                user_id=data.id,
+            )
+            await session.execute(delete(AccessToken).where(AccessToken.user_id == data.id))
             query = delete(UserOrm).where(UserOrm.id == data.id)
             await session.execute(query)
             await session.flush()
