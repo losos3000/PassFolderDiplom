@@ -69,7 +69,7 @@ async def add_data(
     return response
 
 
-@router.put("/edit", response_model=DefaultResponse, status_code=status.HTTP_200_OK)
+@router.post("/edit", response_model=DefaultResponse, status_code=status.HTTP_200_OK)
 async def edit_data(
         data: SDataEdit,
         user: UserOrm = Depends(current_user),
@@ -91,15 +91,15 @@ async def edit_data(
             status_code=e.status_code,
             detail=e.detail
         )
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="INTERNAL SERVER ERROR"
-        )
+    # except Exception:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         detail="INTERNAL SERVER ERROR"
+    #     )
     return response
 
 
-@router.delete("/delete", response_model=DefaultResponse, status_code=status.HTTP_200_OK)
+@router.post("/delete", response_model=DefaultResponse, status_code=status.HTTP_200_OK)
 async def delete_data(
         data: SDataDelete,
         user: UserOrm = Depends(current_user),
@@ -118,11 +118,11 @@ async def delete_data(
             status_code=e.status_code,
             detail=e.detail
         )
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="INTERNAL SERVER ERROR"
-        )
+    # except Exception:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         detail="INTERNAL SERVER ERROR"
+    #     )
     return response
 
 

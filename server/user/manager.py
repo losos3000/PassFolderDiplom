@@ -109,7 +109,15 @@ async def get_user_db(session: AsyncSession = Depends(get_async_session)):
     yield SQLAlchemyUserDatabase(session, UserOrm)
 
 
-cookie_transport = CookieTransport(cookie_name="user", cookie_max_age=3600)
+cookie_transport = CookieTransport(
+    cookie_name="user",
+    cookie_max_age=3600,
+    # cookie_secure=True,   
+    # cookie_samesite="strict",
+    cookie_httponly=False,
+    cookie_path="/",
+    # cookie_domain="127.0.0.1"
+)
 
 
 async def get_user_manager(user_db=Depends(get_user_db)):

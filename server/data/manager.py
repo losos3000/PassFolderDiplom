@@ -71,12 +71,9 @@ class DataManager:
                         detail="FORBIDDEN",
                     )
             elif data.id is None:
-                print("AAAAAAAAAAAAAAAAAAAAa")
                 if user.is_superuser:
-                    print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBb")
                     query = select(DataOrm)
                 else:
-                    print("CCCCCCCCCCCCCCCCCCCCCCC")
                     query = (
                         select(DataOrm)
                         .join(
@@ -116,13 +113,14 @@ class DataManager:
     @classmethod
     async def delete_data(cls, data_id, user: UserOrm):
         async with session_factory() as session:
-            _access: List[SDataUserAccessRead] = await user_access_manager.read_access(
-                session=session,
-                data_id=data_id,
-                user_id=user.id,
-            )
-            access: SDataUserAccessRead = _access[0]
-            print(access)
+
+            if user.is_superuser == False:
+                _access: List[SDataUserAccessRead] = await user_access_manager.read_access(
+                    session=session,
+                    data_id=data_id,
+                    user_id=user.id,
+                )
+                access: SDataUserAccessRead = _access[0]
             if user.is_superuser is False and access.access_edit is False:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -148,12 +146,13 @@ class DataManager:
             new_data: SDataEdit,
     ):
         async with session_factory() as session:
-            _access: List[SDataUserAccessRead] = await user_access_manager.read_access(
-                session=session,
-                data_id=new_data.id,
-                user_id=user.id,
-            )
-            access = _access[0]
+            if user.is_superuser == False:
+                _access: List[SDataUserAccessRead] = await user_access_manager.read_access(
+                    session=session,
+                    data_id=new_data.id,
+                    user_id=user.id,
+                )
+                access = _access[0]
 
             if user.is_superuser or access.access_edit:
                 try:

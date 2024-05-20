@@ -1,6 +1,7 @@
 from typing import List, Type, Tuple
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Response
+
 from fastapi_users import schemas, exceptions, models
 from fastapi_users.authentication import Strategy, Authenticator
 from fastapi_users.manager import BaseUserManager
@@ -27,7 +28,7 @@ router.include_router(
 )
 
 
-@router.put("/edit", response_model=DefaultResponse,status_code=status.HTTP_200_OK)
+@router.post("/edit", response_model=DefaultResponse,status_code=status.HTTP_200_OK)
 async def edit_user(
         data: SUserEdit,
         user_manager: BaseUserManager[models.UP, models.ID] = Depends(get_user_manager),
@@ -49,7 +50,7 @@ async def edit_user(
         )
     return response
 
-@router.delete("/delete", response_model=DefaultResponse, status_code=status.HTTP_200_OK)
+@router.post("/delete", response_model=DefaultResponse, status_code=status.HTTP_200_OK)
 async def delete_user(data: SUserDelete, user: UserOrm = Depends(current_superuser)):
     response = DefaultResponse(
         status="Success",
@@ -123,4 +124,3 @@ async def read_user(user_id: int, user: UserOrm = Depends(current_user)):
             detail="INTERNAL SERVER ERROR"
         )
     return response
-
