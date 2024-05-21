@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { Button, Space, Table, Tag, Row, Col, Form, Input, message, Modal, Switch  } from 'antd';
+import { Button, Space, Table, Tag, Row, Col, Form, Input, message, Modal, Switch } from 'antd';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import { EditOutlined, DeleteOutlined, CloseOutlined, CheckOutlined, PlusOutlined, SaveOutlined} from '@ant-design/icons';
@@ -59,21 +59,20 @@ const Users = () => {
       key: 'email',
     },
     {
-      title: 'Админ',
+      title: 'Уровень прав',
       dataIndex: 'is_superuser',
       key: 'is_superuser',
       render: (_, record) => {
-        console.log(record);
         if (record.is_superuser){
           return (
             <>
-              <CheckOutlined/>
+              <Tag color="purple">Администратор</Tag>
             </>
           )
         } else {
           return (
             <>
-              <CloseOutlined/>
+              <Tag color="green">Пользователь</Tag>
             </>
           )
         }
@@ -82,6 +81,7 @@ const Users = () => {
     {
       title: 'Действия',
       key: 'action',
+      width: 120,
       render: (_, record) => (
         <Space size="small">
           <Button
@@ -154,7 +154,21 @@ const Users = () => {
       )
     })
     .catch(function (error) {
-      if (error.response.status == 401){
+      if (error.response.status == 400){
+        if (error.response.data.detail == "REGISTER_USER_ALREADY_EXISTS"){
+          message.open({
+            type: 'warning',
+            content: 'Такой пользователь уже существует 😕',
+            duration: 2,
+          }) 
+        } else {
+          message.open({
+            type: 'error',
+            content: 'Запрос выполнен неудачно 😭',
+            duration: 2,
+          }) 
+        }
+      } else if (error.response.status == 401){
         navigate("/login")
         return(
           message.open({
@@ -304,36 +318,30 @@ const Users = () => {
         message.open({
           type: 'success',
           content: 'Пользователь успешно удалён 😃',
-          duration: 1,
+          duration:2,
         })
       )
     })
     .catch(function (error) {
       if (error.response.status == 401){
         navigate("/login")
-        return(
-          message.open({
-            type: 'warning',
-            content: 'Сеанс окончен 😕',
-            duration: 2,
-          }) 
-        )
+        message.open({
+          type: 'warning',
+          content: 'Сеанс окончен 😕',
+          duration: 2,
+        }) 
       } else if (error.response.status == 403){
-        return(
-          message.open({
-            type: 'warning',
-            content: 'У Вас нет прав на удаление пользователей 😕',
-            duration: 4,
-          }) 
-        )
+        message.open({
+          type: 'warning',
+          content: 'У Вас нет прав на удаление пользователей 😕',
+          duration: 4,
+        }) 
       } else {
-        return(
           message.open({
             type: 'error',
             content: 'Возникла ошибка 😭',
             duration: 2,
           })
-        );
       }
     });
   };
@@ -399,6 +407,12 @@ const Users = () => {
 
           <Form.Item
             name="password"
+            rules={[
+              {
+                required: true,
+                message: 'Введите пароль',
+              },
+            ]}
           >
             <Input
               placeholder="Пароль"
