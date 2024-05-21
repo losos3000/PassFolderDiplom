@@ -355,81 +355,108 @@ const Users = () => {
       <Row
         style={{
           display: 'flex',
+          width: '100%',
         }}  
       >
         <Form
           name="normal_login"
           className="login-form"
+          
           initialValues={{
             remember: true,
           }}
           onFinish={createUser}
           style={{
             display: 'flex',
+            width: '100%',
           }}
         >
-
-          <Form.Item
-            name="name"
-            rules={[
-              {
-                required: true,
-                message: 'Введите имя',
-              },
-            ]}
+          <Space.Compact
+            direction="horizontal"
+            style={{
+                width: '100%',
+            }}
           >
-            <Input
-              placeholder="Имя пользователя"
-              name='name'
-            />
-          </Form.Item>
-
-
-          <Form.Item
-            name="email"
-            rules={[
-              {
-                required: true,
-                message: 'Введите почту',
-              },
-              {
-                type: 'email',
-                message: 'Почта введена некорректно',
-              },
-            ]}
-          >
-            <Input
-              placeholder="Почта пользователя"
-              name='email'
-            />
-          </Form.Item>
-
-
-          <Form.Item
-            name="password"
-            rules={[
-              {
-                required: true,
-                message: 'Введите пароль',
-              },
-            ]}
-          >
-            <Input
-              placeholder="Пароль"
-              name='password'
-            />
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              className="login-form-button"
+            <Form.Item
+              name="name"
+              style={{
+                width: '100%',
+              }}
+              rules={[
+                {
+                  required: true,
+                  message: 'Введите имя',
+                },
+              ]}
             >
-              <PlusOutlined />
-              Добавить
-            </Button>
-          </Form.Item>
+              <Input
+                placeholder="Имя пользователя"
+                name='name'
+                style={{
+                  width: '100%',
+                }}
+              />
+            </Form.Item>
+
+
+            <Form.Item
+              name="email"
+              style={{
+                width: '100%',
+              }}
+              rules={[
+                {
+                  required: true,
+                  message: 'Введите почту',
+                },
+                {
+                  type: 'email',
+                  message: 'Почта введена некорректно',
+                },
+              ]}
+            >
+              <Input
+                placeholder="Почта пользователя"
+                name='email'
+                style={{
+                  width: '100%',
+                }}
+              />
+            </Form.Item>
+
+
+            <Form.Item
+              name="password"
+              style={{
+                width: '100%',
+              }}
+              rules={[
+                {
+                  required: true,
+                  message: 'Введите пароль',
+                },
+              ]}
+            >
+              <Input
+                placeholder="Пароль"
+                name='password'
+                style={{
+                  width: '100%',
+                }}
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                className="login-form-button"
+              >
+                <PlusOutlined />
+                Добавить
+              </Button>
+            </Form.Item>
+          </Space.Compact>
         </Form>
       </Row>
 

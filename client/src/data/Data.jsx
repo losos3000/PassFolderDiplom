@@ -517,6 +517,7 @@ const Data = () => {
       <Row
         style={{
           display: 'flex',
+          width: '100%',
         }}  
       >
         <Form
@@ -528,11 +529,19 @@ const Data = () => {
           onFinish={createData}
           style={{
             display: 'flex',
+            width: '100%',
           }}
         >
-
+          <Space.Compact
+            direction="horizontal"
+            style={{
+                width: '100%',
+            }}>
           <Form.Item
             name="name"
+            style={{
+              width: '100%',
+            }}
             rules={[
               {
                 required: true,
@@ -543,46 +552,73 @@ const Data = () => {
             <Input
               placeholder="Название"
               name='name'
+              style={{
+                width: '100%',
+              }}
             />
           </Form.Item>
 
 
           <Form.Item
             name="url"
+            style={{
+              width: '100%',
+            }}
           >
             <Input
               placeholder="URL"
               name='url'
+              style={{
+                width: '100%',
+              }}
             />
           </Form.Item>
 
 
           <Form.Item
             name="login"
+            style={{
+              width: '100%',
+            }}
           >
             <Input
               placeholder="Логин"
               name='login'
+              style={{
+                width: '100%',
+              }}
             />
           </Form.Item>
 
 
           <Form.Item
             name="password"
+            style={{
+              width: '100%',
+            }}
           >
             <Input
               placeholder="Пароль"
               name='password'
+              style={{
+                width: '100%',
+              }}
             />
           </Form.Item>
 
 
           <Form.Item
             name="description"
+            style={{
+              width: '100%',
+            }}
           >
             <Input
               placeholder="Описание"
               name='description'
+              style={{
+                width: '100%',
+              }}
             />
           </Form.Item>
 
@@ -597,6 +633,7 @@ const Data = () => {
               Добавить
             </Button>
           </Form.Item>
+          </Space.Compact>
         </Form>
       </Row>
 
